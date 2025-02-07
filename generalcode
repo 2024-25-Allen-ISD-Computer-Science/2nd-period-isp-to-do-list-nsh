@@ -4,19 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>To-Do App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      background-color: #f4f4f4;
     }
     h1 {
       text-align: center;
+      color: #4CAF50;
     }
     .main-container {
-      max-width: 500px;
+      max-width: 800px;
       margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    input[type="text"], input[type="date"], input[type="color"] {
+    input[type="text"], input[type="date"], input[type="color"], select {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
@@ -29,8 +36,42 @@
       cursor: pointer;
       border: none;
       border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background-color: #4CAF50;
+      color: white;
     }
-    ul {
+    button:hover {
+      background-color: #45a049;
+    }
+    .category-box {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .task-filter {
+      margin-bottom: 20px;
+    }
+    .due-date {
+      font-size: 14px;
+      color: #555;
+    }
+    .task-colors {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .task-list {
       list-style-type: none;
       padding: 0;
     }
@@ -47,33 +88,14 @@
       text-decoration: line-through;
       background-color: #d3ffd3;
     }
-    .cat-section {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 5px;
-    }
     .high-priority-task {
       background-color: #ff6666 !important;
-    }
-    .cat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .due-date {
-      font-size: 14px;
-      color: #555;
-    }
-    .task-colors {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
     }
     .subcat-section {
       margin-left: 20px;
       border-left: 2px solid #ddd;
       padding-left: 20px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -82,12 +104,12 @@
     <h1>To-Do App</h1>
     <input type="text" id="cat-name-input" placeholder="Enter a category name">
     <input type="color" id="cat-bg-color" value="#ffffff">
-    <button onclick="makeCategory()">Add Category</button>
+    <button onclick="makeCategory()"><i class="fas fa-plus"></i> Add Category</button>
 
     <div id="all-categories"></div>
 
     <button class="delete-all-btn" onclick="deleteEverything()" style="background-color: #f44336; color: white;">
-      Clear All Tasks
+      <i class="fas fa-trash-alt"></i> Clear All Categories
     </button>
   </div>
 
@@ -104,30 +126,26 @@
       }
 
       const catDiv = document.createElement('div');
-      catDiv.className = 'cat-section';
+      catDiv.className = 'category-box';
       catDiv.id = `cat-${newCategoryName}`;
       catDiv.style.backgroundColor = categoryColor.value;
 
       catDiv.innerHTML = `
         <div class="cat-header">
           <h2>${newCategoryName}</h2>
-          <button onclick="removeCategory('${newCategoryName}')"
-                  style="background-color: #ff4d4d; color: white;">
-            Remove Category
-          </button>
+          <button onclick="removeCategory('${newCategoryName}')">Remove Category</button>
         </div>
-        <input type="text" id="task-name-${newCategoryName}" placeholder="Enter a task">
-        <div class="task-colors">
-          <label>Text Color: <input type="color" id="task-text-color-${newCategoryName}" value="#000000"></label>
-          <label>BG Color: <input type="color" id="task-bg-color-${newCategoryName}" value="#ffffff"></label>
-        </div>
-        <input type="date" id="task-due-${newCategoryName}">
-        <button onclick="addTaskToCategory('${newCategoryName}')">Add Task</button>
-
         <input type="text" id="subcat-name-${newCategoryName}" placeholder="Enter a subcategory name">
-        <button onclick="makeSubcategory('${newCategoryName}')">Add Subcategory</button>
+        <button onclick="makeSubcategory('${newCategoryName}')"><i class="fas fa-folder-plus"></i> Add Subcategory</button>
 
-        <ul id="tasks-list-${newCategoryName}"></ul>
+        <div class="task-filter">
+          <label for="subcategory-filter-${newCategoryName}">Filter tasks by subcategory:</label>
+          <select id="subcategory-filter-${newCategoryName}" onchange="filterTasks('${newCategoryName}')">
+            <option value="all">All</option>
+          </select>
+        </div>
+
+        <div class="subcat-section-container" id="subcat-section-container-${newCategoryName}"></div>
       `;
 
       allCategoriesDiv.appendChild(catDiv);
@@ -135,84 +153,98 @@
       categoryColor.value = '#ffffff';
     }
 
-    function addTaskToCategory(catName) {
-      const taskInput = document.getElementById(`task-name-${catName}`);
-      const taskTextColor = document.getElementById(`task-text-color-${catName}`).value;
-      const taskBgColor = document.getElementById(`task-bg-color-${catName}`).value;
-      const dueDate = document.getElementById(`task-due-${catName}`).value;
-      const taskName = taskInput.value.trim();
-
-      if (taskName === '') return alert('Task name cannot be empty.');
-
-      const taskList = document.getElementById(`tasks-list-${catName}`);
-      const taskItem = document.createElement('li');
-      taskItem.style.color = taskTextColor;
-      taskItem.style.backgroundColor = taskBgColor;
-      taskItem.innerHTML = `
-        <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''}</span>
-        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;">Done</button>
-        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;">Priority</button>
-        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;">Delete</button>
-      `;
-
-      taskList.appendChild(taskItem);
-      taskInput.value = '';
-    }
-
-    function makeSubcategory(parentCatName) {
-      const subcatInput = document.getElementById(`subcat-name-${parentCatName}`);
+    function makeSubcategory(catName) {
+      const subcatInput = document.getElementById(`subcat-name-${catName}`);
       const subcatName = subcatInput.value.trim();
+      if (subcatName === '') return alert('Subcategory name cannot be empty.');
 
-      if (subcatName === '') return alert('Subcategory needs a name!');
+      const catDiv = document.getElementById(`cat-${catName}`);
+      const subcatSectionContainer = document.getElementById(`subcat-section-container-${catName}`);
+      
+      const subcatSection = document.createElement('div');
+      subcatSection.className = 'subcat-section';
+      subcatSection.id = `subcat-${catName}-${subcatName}`;
+      subcatSection.innerHTML = `
+        <h3>${subcatName}</h3>
+        <button onclick="removeSubcategory('${catName}', '${subcatName}')">Remove Subcategory</button>
+        <input type="text" id="task-name-${catName}-${subcatName}" placeholder="Enter a task for ${subcatName}">
+        
+        <div>
+          <label for="subcat-bg-color-${catName}-${subcatName}">Background Color:</label>
+          <input type="color" id="subcat-bg-color-${catName}-${subcatName}" value="#ffffff">
 
-      const parentCatDiv = document.getElementById(`cat-${parentCatName}`);
-      const subcatDiv = document.createElement('div');
-      subcatDiv.className = 'subcat-section';
-      subcatDiv.id = `subcat-${parentCatName}-${subcatName}`;
-      subcatDiv.innerHTML = `
-        <div class="cat-header">
-          <h3>${subcatName}</h3>
-          <button onclick="removeSubcategory('${parentCatName}', '${subcatName}')"
-                  style="background-color: #ff4d4d; color: white;">
-            Remove Subcategory
-          </button>
+          <label for="subcat-text-color-${catName}-${subcatName}">Text Color:</label>
+          <input type="color" id="subcat-text-color-${catName}-${subcatName}" value="#000000">
         </div>
-        <input type="text" id="task-name-${parentCatName}-${subcatName}" placeholder="Enter a task">
-        <div class="task-colors">
-          <label>Text Color: <input type="color" id="task-text-color-${parentCatName}-${subcatName}" value="#000000"></label>
-          <label>BG Color: <input type="color" id="task-bg-color-${parentCatName}-${subcatName}" value="#ffffff"></label>
-        </div>
-        <input type="date" id="task-due-${parentCatName}-${subcatName}">
-        <button onclick="addTaskToSubcategory('${parentCatName}', '${subcatName}')">Add Task</button>
-        <ul id="tasks-list-${parentCatName}-${subcatName}"></ul>
+
+        <input type="date" id="task-due-${catName}-${subcatName}">
+        <button onclick="addTaskToSubcategory('${catName}', '${subcatName}')"><i class="fas fa-plus"></i> Add Task</button>
+        
+        <ul class="task-list" id="tasks-list-${catName}-${subcatName}"></ul>
       `;
 
-      parentCatDiv.appendChild(subcatDiv);
+      subcatSectionContainer.appendChild(subcatSection);
+
+      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
+      const newOption = document.createElement('option');
+      newOption.value = subcatName;
+      newOption.textContent = subcatName;
+      subcategoryFilter.appendChild(newOption);
+
       subcatInput.value = '';
     }
 
-    function addTaskToSubcategory(parentCatName, subcatName) {
-      const taskInput = document.getElementById(`task-name-${parentCatName}-${subcatName}`);
-      const taskTextColor = document.getElementById(`task-text-color-${parentCatName}-${subcatName}`).value;
-      const taskBgColor = document.getElementById(`task-bg-color-${parentCatName}-${subcatName}`).value;
-      const dueDate = document.getElementById(`task-due-${parentCatName}-${subcatName}`).value;
+    function addTaskToSubcategory(catName, subcatName) {
+      const taskInput = document.getElementById(`task-name-${catName}-${subcatName}`);
+      const dueDate = document.getElementById(`task-due-${catName}-${subcatName}`).value;
       const taskName = taskInput.value.trim();
+
+      const taskBgColor = document.getElementById(`subcat-bg-color-${catName}-${subcatName}`).value;
+      const taskTextColor = document.getElementById(`subcat-text-color-${catName}-${subcatName}`).value;
 
       if (taskName === '') return alert('Task name cannot be empty.');
 
-      const taskList = document.getElementById(`tasks-list-${parentCatName}-${subcatName}`);
+      const taskList = document.getElementById(`tasks-list-${catName}-${subcatName}`);
       const taskItem = document.createElement('li');
-      taskItem.style.color = taskTextColor;
+      taskItem.className = 'task-item';
       taskItem.style.backgroundColor = taskBgColor;
+      taskItem.style.color = taskTextColor;
       taskItem.innerHTML = `
         <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''}</span>
-        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;">Done</button>
-        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;">Priority</button>
-        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;">Delete</button>
+        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;">
+          <i class="fas fa-check"></i> Done
+        </button>
+        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;">
+          <i class="fas fa-exclamation"></i> Priority
+        </button>
+        <button onclick="duplicateTask(this)" style="background-color: #ffa500; color: white;">
+          <i class="fas fa-copy"></i> Duplicate
+        </button>
+        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;">
+          <i class="fas fa-trash"></i> Delete
+        </button>
       `;
 
       taskList.appendChild(taskItem);
       taskInput.value = '';
+    }
+
+    function filterTasks(catName) {
+      const filterValue = document.getElementById(`subcategory-filter-${catName}`).value;
+      const allSubcategories = document.querySelectorAll(`#cat-${catName} .subcat-section`);
+
+      allSubcategories.forEach(subcat => {
+        if (filterValue === 'all') {
+          subcat.style.display = 'block'; // Show all subcategories
+        } else {
+          // Hide subcategory if it doesn't match the selected filter
+          if (subcat.id !== `subcat-${catName}-${filterValue}`) {
+            subcat.style.display = 'none';
+          } else {
+            subcat.style.display = 'block';
+          }
+        }
+      });
     }
 
     function markTaskDone(button) {
@@ -225,6 +257,12 @@
       taskLi.classList.toggle('high-priority-task');
     }
 
+    function duplicateTask(button) {
+      const taskLi = button.parentElement;
+      const clonedTask = taskLi.cloneNode(true);
+      taskLi.parentElement.appendChild(clonedTask);
+    }
+
     function deleteTask(button) {
       const taskLi = button.parentElement;
       taskLi.remove();
@@ -235,9 +273,16 @@
       catDiv.remove();
     }
 
-    function removeSubcategory(parentCatName, subcatName) {
-      const subcatDiv = document.getElementById(`subcat-${parentCatName}-${subcatName}`);
-      subcatDiv.remove();
+    function removeSubcategory(catName, subcatName) {
+      const subcatSection = document.getElementById(`subcat-${catName}-${subcatName}`);
+      subcatSection.remove();
+
+      // Remove the subcategory from the filter dropdown
+      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
+      const optionToRemove = subcategoryFilter.querySelector(`option[value="${subcatName}"]`);
+      if (optionToRemove) {
+        subcategoryFilter.removeChild(optionToRemove);
+      }
     }
 
     function deleteEverything() {
@@ -245,6 +290,3 @@
         document.getElementById('all-categories').innerHTML = '';
       }
     }
-  </script>
-</body>
-</html>
