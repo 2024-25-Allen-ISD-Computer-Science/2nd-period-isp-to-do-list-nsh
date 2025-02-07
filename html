@@ -10,19 +10,25 @@
       font-family: Arial, sans-serif;
       padding: 20px;
       background-color: #f4f4f4;
+      transition: background-color 0.3s, color 0.3s;
     }
+
     h1 {
       text-align: center;
       color: #4CAF50;
+      transition: color 0.3s;
     }
+
     .main-container {
-      max-width: 500px;
+      max-width: 800px;
       margin: 0 auto;
       background-color: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, box-shadow 0.3s;
     }
+
     input[type="text"], input[type="date"], input[type="color"], select {
       width: 100%;
       padding: 10px;
@@ -30,6 +36,7 @@
       box-sizing: border-box;
       font-size: 16px;
     }
+
     button {
       padding: 10px;
       font-size: 16px;
@@ -42,13 +49,47 @@
       background-color: #4CAF50;
       color: white;
     }
+
     button:hover {
       background-color: #45a049;
     }
-    ul {
+
+    .category-box {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .task-filter {
+      margin-bottom: 20px;
+    }
+
+    .due-date {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .task-colors {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .task-list {
       list-style-type: none;
       padding: 0;
     }
+
     li {
       padding: 10px;
       background-color: #f4f4f4;
@@ -58,37 +99,60 @@
       justify-content: space-between;
       align-items: center;
     }
+
     li.done {
       text-decoration: line-through;
       background-color: #d3ffd3;
     }
+
     .high-priority-task {
       background-color: #ff6666 !important;
     }
-    .cat-section {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .cat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .due-date {
-      font-size: 14px;
-      color: #555;
-    }
-    .task-colors {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
+
     .subcat-section {
       margin-left: 20px;
       border-left: 2px solid #ddd;
       padding-left: 20px;
+      margin-top: 20px;
+    }
+
+    .dark-mode {
+      background-color: #333;
+    }
+
+    .dark-mode .main-container {
+      background-color: #444;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .dark-mode button {
+      background-color: #555;
+      color: white;
+    }
+
+    .dark-mode button:hover {
+      background-color: #666;
+    }
+
+    .dark-mode h1 {
+      color: #e0e0e0;
+    }
+
+    .dark-mode .category-box {
+      background-color: #555;
+    }
+
+    .dark-mode .cat-header h2 {
+      color: #e0e0e0;
+    }
+
+    /* No changes to task text color */
+    .task-item span {
+      color: black; /* Default text color for task names */
+    }
+
+    .dark-mode .task-item.done {
+      color: #b0b0b0; /* Light gray color for completed tasks */
     }
   </style>
 </head>
@@ -102,11 +166,22 @@
     <div id="all-categories"></div>
 
     <button class="delete-all-btn" onclick="deleteEverything()" style="background-color: #f44336; color: white;">
-      <i class="fas fa-trash-alt"></i> Clear All Tasks
+      <i class="fas fa-trash-alt"></i> Clear All Categories
+    </button>
+
+    <button class="toggle-dark-mode" onclick="toggleDarkMode()">
+      <i class="fas fa-moon"></i> Toggle Dark Mode
     </button>
   </div>
 
   <script>
+    let darkMode = false;
+
+    function toggleDarkMode() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark-mode', darkMode);
+    }
+
     function makeCategory() {
       const categoryInput = document.getElementById('cat-name-input');
       const categoryColor = document.getElementById('cat-bg-color');
@@ -119,35 +194,28 @@
       }
 
       const catDiv = document.createElement('div');
-      catDiv.className = 'cat-section';
+      catDiv.className = 'category-box';
       catDiv.id = `cat-${newCategoryName}`;
       catDiv.style.backgroundColor = categoryColor.value;
 
       catDiv.innerHTML = `
         <div class="cat-header">
           <h2>${newCategoryName}</h2>
-          <button onclick="removeCategory('${newCategoryName}')" style="background-color: #ff4d4d; color: white;">
-            <i class="fas fa-trash"></i> Remove Category
-          </button>
+          <button onclick="removeCategory('${newCategoryName}')">Remove Category</button>
         </div>
-        <input type="text" id="task-name-${newCategoryName}" placeholder="Enter a task for ${newCategoryName}">
-        <div class="task-colors">
-          <label>Text Color: <input type="color" id="task-text-color-${newCategoryName}" value="#000000"></label>
-          <label>BG Color: <input type="color" id="task-bg-color-${newCategoryName}" value="#ffffff"></label>
-        </div>
-        <input type="date" id="task-due-${newCategoryName}">
-        <button onclick="addTaskToCategory('${newCategoryName}')"><i class="fas fa-plus"></i> Add Task</button>
-
-        <select id="task-status-${newCategoryName}">
-          <option value="not-started">Not Started</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-
         <input type="text" id="subcat-name-${newCategoryName}" placeholder="Enter a subcategory name">
         <button onclick="makeSubcategory('${newCategoryName}')"><i class="fas fa-folder-plus"></i> Add Subcategory</button>
 
-        <ul id="tasks-list-${newCategoryName}"></ul>
+        <div class="task-filter">
+          <label for="subcategory-filter-${newCategoryName}">Filter tasks by subcategory:</label>
+          <select id="subcategory-filter-${newCategoryName}" onchange="filterTasks('${newCategoryName}')">
+            <option value="all">All</option>
+          </select>
+        </div>
+
+        <div class="subcat-section-container" id="subcat-section-container-${newCategoryName}"></div>
+
+        <button onclick="completeAllTasks('${newCategoryName}')">Complete All Tasks</button>
       `;
 
       allCategoriesDiv.appendChild(catDiv);
@@ -161,114 +229,122 @@
       if (subcatName === '') return alert('Subcategory name cannot be empty.');
 
       const catDiv = document.getElementById(`cat-${catName}`);
+      const subcatSectionContainer = document.getElementById(`subcat-section-container-${catName}`);
+      
       const subcatSection = document.createElement('div');
       subcatSection.className = 'subcat-section';
+      subcatSection.id = `subcat-${catName}-${subcatName}`;
       subcatSection.innerHTML = `
         <h3>${subcatName}</h3>
+        <button onclick="removeSubcategory('${catName}', '${subcatName}')">Remove Subcategory</button>
         <input type="text" id="task-name-${catName}-${subcatName}" placeholder="Enter a task for ${subcatName}">
-        <div class="task-colors">
-          <label>Text Color: <input type="color" id="task-text-color-${catName}-${subcatName}" value="#000000"></label>
-          <label>BG Color: <input type="color" id="task-bg-color-${catName}-${subcatName}" value="#ffffff"></label>
-        </div>
+        
         <input type="date" id="task-due-${catName}-${subcatName}">
         <button onclick="addTaskToSubcategory('${catName}', '${subcatName}')"><i class="fas fa-plus"></i> Add Task</button>
-
-        <select id="task-status-${catName}-${subcatName}">
-          <option value="not-started">Not Started</option>
-          <option value="in-progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-
-        <ul id="tasks-list-${catName}-${subcatName}"></ul>
+        
+        <ul class="task-list" id="tasks-list-${catName}-${subcatName}"></ul>
       `;
 
-      catDiv.appendChild(subcatSection);
+      subcatSectionContainer.appendChild(subcatSection);
+
+      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
+      const newOption = document.createElement('option');
+      newOption.value = subcatName;
+      newOption.textContent = subcatName;
+      subcategoryFilter.appendChild(newOption);
+
       subcatInput.value = '';
-    }
-
-    function addTaskToCategory(catName) {
-      const taskInput = document.getElementById(`task-name-${catName}`);
-      const taskTextColor = document.getElementById(`task-text-color-${catName}`).value;
-      const taskBgColor = document.getElementById(`task-bg-color-${catName}`).value;
-      const dueDate = document.getElementById(`task-due-${catName}`).value;
-      const taskStatus = document.getElementById(`task-status-${catName}`).value;
-      const taskName = taskInput.value.trim();
-
-      if (taskName === '') return alert('Task name cannot be empty.');
-
-      const taskList = document.getElementById(`tasks-list-${catName}`);
-      const taskItem = document.createElement('li');
-      taskItem.style.color = taskTextColor;
-      taskItem.style.backgroundColor = taskBgColor;
-      taskItem.innerHTML = `
-        <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''} <span>Status: ${taskStatus}</span></span>
-        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;"><i class="fas fa-check"></i> Done</button>
-        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;"><i class="fas fa-exclamation"></i> Priority</button>
-        <button onclick="duplicateTask(this)" style="background-color: #ffa500; color: white;"><i class="fas fa-copy"></i> Duplicate</button>
-        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;"><i class="fas fa-trash"></i> Delete</button>
-      `;
-
-      taskList.appendChild(taskItem);
-      taskInput.value = '';
     }
 
     function addTaskToSubcategory(catName, subcatName) {
       const taskInput = document.getElementById(`task-name-${catName}-${subcatName}`);
-      const taskTextColor = document.getElementById(`task-text-color-${catName}-${subcatName}`).value;
-      const taskBgColor = document.getElementById(`task-bg-color-${catName}-${subcatName}`).value;
       const dueDate = document.getElementById(`task-due-${catName}-${subcatName}`).value;
-      const taskStatus = document.getElementById(`task-status-${catName}-${subcatName}`).value;
       const taskName = taskInput.value.trim();
 
       if (taskName === '') return alert('Task name cannot be empty.');
 
       const taskList = document.getElementById(`tasks-list-${catName}-${subcatName}`);
       const taskItem = document.createElement('li');
-      taskItem.style.color = taskTextColor;
-      taskItem.style.backgroundColor = taskBgColor;
+      taskItem.className = 'task-item';
       taskItem.innerHTML = `
-        <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''} <span>Status: ${taskStatus}</span></span>
-        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;"><i class="fas fa-check"></i> Done</button>
-        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;"><i class="fas fa-exclamation"></i> Priority</button>
-        <button onclick="duplicateTask(this)" style="background-color: #ffa500; color: white;"><i class="fas fa-copy"></i> Duplicate</button>
-        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;"><i class="fas fa-trash"></i> Delete</button>
+        <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''}</span>
+        <button onclick="editTask('${catName}', '${subcatName}', this)"><i class="fas fa-edit"></i> Edit</button>
+        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;">
+          <i class="fas fa-check"></i> Done
+        </button>
+        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;">
+          <i class="fas fa-exclamation"></i> Priority
+        </button>
+        <button onclick="duplicateTask(this)" style="background-color: #ffa500; color: white;">
+          <i class="fas fa-copy"></i> Duplicate
+        </button>
+        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;">
+          <i class="fas fa-trash"></i> Delete
+        </button>
       `;
 
       taskList.appendChild(taskItem);
       taskInput.value = '';
     }
 
-    function markTaskDone(button) {
-      const taskLi = button.parentElement;
-      taskLi.classList.toggle('done');
-    }
-
-    function markTaskHighPriority(button) {
-      const taskLi = button.parentElement;
-      taskLi.classList.toggle('high-priority-task');
+    function editTask(catName, subcatName, button) {
+      const taskItem = button.parentElement;
+      const taskText = taskItem.querySelector('span').textContent;
+      const newTaskName = prompt('Edit task:', taskText);
+      if (newTaskName !== null) {
+        taskItem.querySelector('span').textContent = newTaskName;
+      }
     }
 
     function deleteTask(button) {
-      const taskLi = button.parentElement;
-      taskLi.remove();
-    }
-
-    function duplicateTask(button) {
-      const taskLi = button.parentElement;
-      const clonedTask = taskLi.cloneNode(true);
-      taskLi.parentElement.appendChild(clonedTask);
-    }
-
-    function removeCategory(catName) {
-      const catDiv = document.getElementById(`cat-${catName}`);
-      catDiv.remove();
+      const taskItem = button.parentElement;
+      taskItem.remove();
     }
 
     function deleteEverything() {
-      if (confirm('Are you sure you want to delete everything?')) {
-        document.getElementById('all-categories').innerHTML = '';
+      const allCategoriesDiv = document.getElementById('all-categories');
+      allCategoriesDiv.innerHTML = '';
+    }
+
+    function markTaskDone(button) {
+      const taskItem = button.parentElement;
+      taskItem.classList.toggle('done');
+    }
+
+    function markTaskHighPriority(button) {
+      const taskItem = button.parentElement;
+      taskItem.classList.toggle('high-priority-task');
+    }
+
+    function duplicateTask(button) {
+      const taskItem = button.parentElement;
+      const taskClone = taskItem.cloneNode(true);
+      taskItem.parentElement.appendChild(taskClone);
+    }
+
+    function removeCategory(categoryName) {
+      const category = document.getElementById(`cat-${categoryName}`);
+      category.remove();
+    }
+
+    function removeSubcategory(catName, subcatName) {
+      const subcategory = document.getElementById(`subcat-${catName}-${subcatName}`);
+      subcategory.remove();
+
+      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
+      const option = subcategoryFilter.querySelector(`option[value="${subcatName}"]`);
+      if (option) {
+        option.remove();
       }
+    }
+
+    function completeAllTasks(catName) {
+      const allTasks = document.querySelectorAll(`#cat-${catName} .task-list .task-item`);
+      allTasks.forEach(task => {
+        task.classList.add('done');
+      });
     }
   </script>
 </body>
 </html>
+
