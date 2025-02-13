@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-//a
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -147,19 +146,57 @@
       color: #e0e0e0;
     }
 
-    /* No changes to task text color */
-    .task-item span {
-      color: black; /* Default text color for task names */
-    }
-
     .dark-mode .task-item.done {
       color: #b0b0b0; /* Light gray color for completed tasks */
+    }
+
+    /* Category filter input style */
+    #category-filter {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    /* Progress Bar Section */
+    .progress-section {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-container {
+      margin-top: 10px;
+    }
+
+    progress {
+      width: 100%;
+      height: 20px;
+    }
+
+    #progress-text {
+      font-weight: bold;
+      margin-top: 5px;
+      display: block;
     }
   </style>
 </head>
 <body>
   <div class="main-container">
     <h1>To-Do App</h1>
+
+    <!-- Category filter dropdown -->
+    <div class="task-filter">
+      <label for="category-filter">Filter categories:</label>
+      <select id="category-filter" onchange="filterCategories()">
+        <option value="all">All</option>
+      </select>
+    </div>
+
     <input type="text" id="cat-name-input" placeholder="Enter a category name">
     <input type="color" id="cat-bg-color" value="#ffffff">
     <button onclick="makeCategory()"><i class="fas fa-plus"></i> Add Category</button>
@@ -173,6 +210,16 @@
     <button class="toggle-dark-mode" onclick="toggleDarkMode()">
       <i class="fas fa-moon"></i> Toggle Dark Mode
     </button>
+
+    <!-- Progress Bar Section -->
+    <div class="progress-section">
+      <label for="progress-input">Enter Completion Percentage:</label>
+      <input type="number" id="progress-input" min="0" max="100" placeholder="0-100%" onchange="updateProgressBar()">
+      <div class="progress-container">
+        <progress id="progress-bar" value="0" max="100"></progress>
+        <span id="progress-text">0%</span>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -220,6 +267,14 @@
       `;
 
       allCategoriesDiv.appendChild(catDiv);
+      
+      // Add category name to filter
+      const categoryFilter = document.getElementById('category-filter');
+      const newOption = document.createElement('option');
+      newOption.value = newCategoryName;
+      newOption.textContent = newCategoryName;
+      categoryFilter.appendChild(newOption);
+
       categoryInput.value = '';
       categoryColor.value = '#ffffff';
     }
@@ -261,89 +316,110 @@
       const taskInput = document.getElementById(`task-name-${catName}-${subcatName}`);
       const dueDate = document.getElementById(`task-due-${catName}-${subcatName}`).value;
       const taskName = taskInput.value.trim();
-
       if (taskName === '') return alert('Task name cannot be empty.');
 
-      const taskList = document.getElementById(`tasks-list-${catName}-${subcatName}`);
+      const tasksList = document.getElementById(`tasks-list-${catName}-${subcatName}`);
+      
       const taskItem = document.createElement('li');
-      taskItem.className = 'task-item';
       taskItem.innerHTML = `
-        <span>${taskName} ${dueDate ? `<span class="due-date">(Due: ${dueDate})</span>` : ''}</span>
-        <button onclick="editTask('${catName}', '${subcatName}', this)"><i class="fas fa-edit"></i> Edit</button>
-        <button onclick="markTaskDone(this)" style="background-color: #4CAF50; color: white;">
-          <i class="fas fa-check"></i> Done
-        </button>
-        <button onclick="markTaskHighPriority(this)" style="background-color: #ff6666; color: white;">
-          <i class="fas fa-exclamation"></i> Priority
-        </button>
-        <button onclick="duplicateTask(this)" style="background-color: #ffa500; color: white;">
-          <i class="fas fa-copy"></i> Duplicate
-        </button>
-        <button onclick="deleteTask(this)" style="background-color: #ff4d4d; color: white;">
-          <i class="fas fa-trash"></i> Delete
-        </button>
+        <span>${taskName} <span class="due-date">${dueDate ? `Due: ${dueDate}` : ''}</span></span>
+        <button onclick="markTaskDone('${catName}', '${subcatName}', this)">Done</button>
       `;
-
-      taskList.appendChild(taskItem);
+      
+      tasksList.appendChild(taskItem);
       taskInput.value = '';
     }
 
-    function editTask(catName, subcatName, button) {
-      const taskItem = button.parentElement;
-      const taskText = taskItem.querySelector('span').textContent;
-      const newTaskName = prompt('Edit task:', taskText);
-      if (newTaskName !== null) {
-        taskItem.querySelector('span').textContent = newTaskName;
+    function markTaskDone(catName, subcatName, taskButton) {
+      taskButton.parentElement.classList.add('done');
+      taskButton.remove();
+    }
+
+    function filterCategories() {
+      const filterValue = document.getElementById('category-filter').value;
+      const allCategoriesDiv = document.getElementById('all-categories');
+      const allCategories = allCategoriesDiv.getElementsByClassName('category-box');
+      
+      for (const category of allCategories) {
+        if (filterValue === 'all' || category.id === `cat-${filterValue}`) {
+          category.style.display = 'block';
+        } else {
+          category.style.display = 'none';
+        }
       }
     }
 
-    function deleteTask(button) {
-      const taskItem = button.parentElement;
-      taskItem.remove();
+    function filterTasks(catName) {
+      const filterValue = document.getElementById(`subcategory-filter-${catName}`).value;
+      const subcatSectionContainer = document.getElementById(`subcat-section-container-${catName}`);
+      const subcatSections = subcatSectionContainer.getElementsByClassName('subcat-section');
+      
+      for (const subcat of subcatSections) {
+        const tasksList = subcat.querySelector('.task-list');
+        const tasks = tasksList.getElementsByTagName('li');
+        
+        for (const task of tasks) {
+          if (filterValue === 'all' || task.innerText.includes(filterValue)) {
+            task.style.display = 'block';
+          } else {
+            task.style.display = 'none';
+          }
+        }
+      }
+    }
+
+    function removeCategory(catName) {
+      const catDiv = document.getElementById(`cat-${catName}`);
+      catDiv.remove();
+      
+      // Remove from filter
+      const categoryFilter = document.getElementById('category-filter');
+      categoryFilter.removeChild(categoryFilter.querySelector(`option[value="${catName}"]`));
+    }
+
+    function removeSubcategory(catName, subcatName) {
+      const subcatSection = document.getElementById(`subcat-${catName}-${subcatName}`);
+      subcatSection.remove();
+      
+      // Remove from filter
+      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
+      subcategoryFilter.removeChild(subcategoryFilter.querySelector(`option[value="${subcatName}"]`));
+    }
+
+    function completeAllTasks(catName) {
+      const subcatSectionContainer = document.getElementById(`subcat-section-container-${catName}`);
+      const subcatSections = subcatSectionContainer.getElementsByClassName('subcat-section');
+      
+      for (const subcat of subcatSections) {
+        const tasksList = subcat.querySelector('.task-list');
+        const tasks = tasksList.getElementsByTagName('li');
+        
+        for (const task of tasks) {
+          task.classList.add('done');
+        }
+      }
     }
 
     function deleteEverything() {
       const allCategoriesDiv = document.getElementById('all-categories');
       allCategoriesDiv.innerHTML = '';
+      const categoryFilter = document.getElementById('category-filter');
+      categoryFilter.innerHTML = '<option value="all">All</option>';
     }
 
-    function markTaskDone(button) {
-      const taskItem = button.parentElement;
-      taskItem.classList.toggle('done');
-    }
-
-    function markTaskHighPriority(button) {
-      const taskItem = button.parentElement;
-      taskItem.classList.toggle('high-priority-task');
-    }
-
-    function duplicateTask(button) {
-      const taskItem = button.parentElement;
-      const taskClone = taskItem.cloneNode(true);
-      taskItem.parentElement.appendChild(taskClone);
-    }
-
-    function removeCategory(categoryName) {
-      const category = document.getElementById(`cat-${categoryName}`);
-      category.remove();
-    }
-
-    function removeSubcategory(catName, subcatName) {
-      const subcategory = document.getElementById(`subcat-${catName}-${subcatName}`);
-      subcategory.remove();
-
-      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
-      const option = subcategoryFilter.querySelector(`option[value="${subcatName}"]`);
-      if (option) {
-        option.remove();
-      }
-    }
-
-    function completeAllTasks(catName) {
-      const allTasks = document.querySelectorAll(`#cat-${catName} .task-list .task-item`);
-      allTasks.forEach(task => {
-        task.classList.add('done');
-      });
+    function updateProgressBar() {
+      const progressInput = document.getElementById('progress-input');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      
+      let progressValue = parseInt(progressInput.value);
+      
+      // Ensure the value is between 0 and 100
+      if (progressValue < 0) progressValue = 0;
+      if (progressValue > 100) progressValue = 100;
+      
+      progressBar.value = progressValue;
+      progressText.textContent = `${progressValue}%`;
     }
   </script>
 </body>
