@@ -6,6 +6,7 @@
   <title>To-Do App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* Add styles for the page */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -40,11 +41,6 @@
       transition: border-color 0.3s, box-shadow 0.3s;
     }
 
-    input[type="text"]:focus, input[type="date"]:focus, input[type="color"]:focus, select:focus {
-      border-color: #4CAF50;
-      box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
-    }
-
     button {
       padding: 12px 18px;
       font-size: 16px;
@@ -59,12 +55,6 @@
       transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
     }
 
-    button:hover {
-      background-color: #45a049;
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
     .category-box {
       margin-top: 20px;
       padding: 20px;
@@ -75,31 +65,11 @@
       transition: box-shadow 0.3s, transform 0.3s;
     }
 
-    .category-box:hover {
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-      transform: scale(1.03);
-    }
-
     .cat-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
-    }
-
-    .task-filter {
-      margin-bottom: 20px;
-    }
-
-    .due-date {
-      font-size: 14px;
-      color: #555;
-    }
-
-    .task-colors {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
     }
 
     .task-list {
@@ -129,17 +99,6 @@
       background-color: #d3ffd3;
     }
 
-    .high-priority-task {
-      background-color: #ff6666 !important;
-    }
-
-    .subcat-section {
-      margin-left: 20px;
-      border-left: 2px solid #ddd;
-      padding-left: 20px;
-      margin-top: 20px;
-    }
-
     .dark-mode {
       background-color: #333;
     }
@@ -147,33 +106,6 @@
     .dark-mode .main-container {
       background-color: #444;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-    }
-
-    .dark-mode button {
-      background-color: #555;
-      color: white;
-    }
-
-    .dark-mode button:hover {
-      background-color: #666;
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .dark-mode h1 {
-      color: #e0e0e0;
-    }
-
-    .dark-mode .category-box {
-      background-color: #555;
-    }
-
-    .dark-mode .cat-header h2 {
-      color: #e0e0e0;
-    }
-
-    .dark-mode .task-item.done {
-      color: #b0b0b0;
     }
 
     /* Toggle Switch Styles */
@@ -222,39 +154,18 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
-
-    .dark-mode .slider {
-      background-color: #555;
-    }
-
-    .dark-mode input:checked + .slider {
-      background-color: #4CAF50;
-    }
-
-    .dark-mode .slider:before {
-      background-color: #e0e0e0;
-    }
   </style>
 </head>
 <body>
   <div class="main-container">
     <h1>To-Do App</h1>
 
-    <!-- Toggle Switch for Dark Mode -->
     <label class="toggle-switch">
       <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
       <span class="slider"></span>
     </label>
 
-    <!-- Category filter dropdown -->
-    <div class="task-filter">
-      <label for="category-filter">Filter categories:</label>
-      <select id="category-filter" onchange="filterCategories()">
-        <option value="all">All</option>
-      </select>
-    </div>
-
-    <input type="text" id="cat-name-input" placeholder="Enter a category name">
+    <input type="text" id="cat-name-input" placeholder="Enter category name">
     <input type="color" id="cat-bg-color" value="#ffffff">
     <button onclick="makeCategory()"><i class="fas fa-plus"></i> Add Category</button>
 
@@ -264,19 +175,16 @@
       <i class="fas fa-trash-alt"></i> Clear All Categories
     </button>
 
-    <!-- Progress Bar Section -->
-    <div class="progress-section">
-      <label for="progress-input">Enter Completion Percentage:</label>
-      <input type="number" id="progress-input" min="0" max="100" placeholder="0-100%" onchange="updateProgressBar()">
-      <div class="progress-container">
-        <progress id="progress-bar" value="0" max="100"></progress>
-        <span id="progress-text">0%</span>
-      </div>
+    <!-- Deleted Tasks Section -->
+    <div id="deleted-tasks">
+      <h2>Deleted Tasks</h2>
+      <ul class="task-list" id="deleted-task-list"></ul>
     </div>
   </div>
 
   <script>
     let darkMode = false;
+    let deletedTasks = [];
 
     function toggleDarkMode() {
       darkMode = !darkMode;
@@ -305,104 +213,95 @@
           <h2>${newCategoryName}</h2>
           <button onclick="removeCategory('${newCategoryName}')">Remove Category</button>
         </div>
-        <input type="text" id="subcat-name-${newCategoryName}" placeholder="Enter a subcategory name">
-        <button onclick="makeSubcategory('${newCategoryName}')"><i class="fas fa-folder-plus"></i> Add Subcategory</button>
-
-        <div class="task-filter">
-          <label for="subcategory-filter-${newCategoryName}">Filter tasks by subcategory:</label>
-          <select id="subcategory-filter-${newCategoryName}" onchange="filterTasks('${newCategoryName}')">
-            <option value="all">All</option>
-          </select>
-        </div>
-
-        <div class="subcat-section-container" id="subcat-section-container-${newCategoryName}"></div>
-
-        <button onclick="completeAllTasks('${newCategoryName}')">Complete All Tasks</button>
-        <button onclick="clearCompletedTasks('${newCategoryName}')">Clear Completed Tasks</button>
+        <input type="text" id="task-name-${newCategoryName}" placeholder="Enter task name">
+        <input type="date" id="task-due-date-${newCategoryName}">
+        <button onclick="makeTask('${newCategoryName}')"><i class="fas fa-plus"></i> Add Task</button>
+        
+        <ul class="task-list" id="task-list-${newCategoryName}"></ul>
       `;
-
       allCategoriesDiv.appendChild(catDiv);
 
-      // Add category name to filter
-      const categoryFilter = document.getElementById('category-filter');
-      const newOption = document.createElement('option');
-      newOption.value = newCategoryName;
-      newOption.textContent = newCategoryName;
-      categoryFilter.appendChild(newOption);
-
       categoryInput.value = '';
-      categoryColor.value = '#ffffff';
     }
 
-    function clearCompletedTasks(catName) {
-      const catDiv = document.getElementById(`cat-${catName}`);
-      const subcatSections = catDiv.getElementsByClassName('subcat-section');
-
-      Array.from(subcatSections).forEach(subcat => {
-        const taskList = subcat.querySelector('.task-list');
-        const completedTasks = taskList.querySelectorAll('li.done');
-        completedTasks.forEach(task => task.remove());
-      });
-    }
-
-    function makeSubcategory(catName) {
-      const subcatInput = document.getElementById(`subcat-name-${catName}`);
-      const subcatName = subcatInput.value.trim();
-      if (subcatName === '') return alert('Subcategory name cannot be empty.');
-
-      const catDiv = document.getElementById(`cat-${catName}`);
-      const subcatSectionContainer = document.getElementById(`subcat-section-container-${catName}`);
-      
-      const subcatSection = document.createElement('div');
-      subcatSection.className = 'subcat-section';
-      subcatSection.id = `subcat-${catName}-${subcatName}`;
-      subcatSection.innerHTML = `
-        <h3>${subcatName}</h3>
-        <button onclick="removeSubcategory('${catName}', '${subcatName}')">Remove Subcategory</button>
-        
-        <!-- Task creation form for the subcategory -->
-        <input type="text" id="task-name-${catName}-${subcatName}" placeholder="Enter task name">
-        <input type="date" id="task-due-date-${catName}-${subcatName}">
-        <button onclick="makeTask('${catName}', '${subcatName}')">Add Task</button>
-
-        <ul class="task-list"></ul>
-      `;
-      
-      subcatSectionContainer.appendChild(subcatSection);
-      subcatInput.value = '';
-
-      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
-      const newOption = document.createElement('option');
-      newOption.value = subcatName;
-      newOption.textContent = subcatName;
-      subcategoryFilter.appendChild(newOption);
-    }
-
-    function makeTask(catName, subcatName) {
-      const taskInput = document.getElementById(`task-name-${catName}-${subcatName}`);
-      const dueDateInput = document.getElementById(`task-due-date-${catName}-${subcatName}`);
-      const taskName = taskInput.value.trim();
-      const dueDate = dueDateInput.value;
+    function makeTask(catName) {
+      const taskNameInput = document.getElementById(`task-name-${catName}`);
+      const taskDueDateInput = document.getElementById(`task-due-date-${catName}`);
+      const taskName = taskNameInput.value.trim();
+      const taskDueDate = taskDueDateInput.value;
 
       if (taskName === '') return alert('Task name cannot be empty.');
 
-      const subcatSection = document.getElementById(`subcat-${catName}-${subcatName}`);
-      const taskList = subcatSection.querySelector('.task-list');
-
+      const taskList = document.getElementById(`task-list-${catName}`);
+      
       const taskItem = document.createElement('li');
+      taskItem.className = 'task-item';
       taskItem.innerHTML = `
-        ${taskName} <span class="due-date">Due: ${dueDate}</span>
-        <button onclick="markTaskCompleted('${catName}', '${subcatName}', this)">Complete</button>
+        ${taskName} <span class="due-date">Due: ${taskDueDate}</span>
+        <button onclick="completeTask('${catName}', this)">Complete</button>
+        <button onclick="deleteTask('${catName}', this)">Delete</button>
       `;
+      
       taskList.appendChild(taskItem);
-
-      taskInput.value = '';
-      dueDateInput.value = '';
+      taskNameInput.value = '';
+      taskDueDateInput.value = '';
     }
 
-    function markTaskCompleted(catName, subcatName, taskElement) {
-      const taskItem = taskElement.parentElement;
+    function completeTask(catName, btn) {
+      const taskItem = btn.parentElement;
       taskItem.classList.toggle('done');
+    }
+
+    function deleteTask(catName, btn) {
+      const taskItem = btn.parentElement;
+      const taskName = taskItem.textContent.trim();
+
+      // Add task to the deletedTasks array
+      deletedTasks.push({ name: taskName, category: catName });
+
+      // Move the deleted task to the "Deleted Tasks" section
+      const deletedTaskList = document.getElementById('deleted-task-list');
+      const deletedTaskItem = document.createElement('li');
+      deletedTaskItem.innerHTML = `
+        ${taskName} 
+        <button onclick="restoreTask('${taskName}')">Restore</button>
+      `;
+      deletedTaskList.appendChild(deletedTaskItem);
+
+      // Remove the task from the current list
+      taskItem.remove();
+    }
+
+    function restoreTask(taskName) {
+      // Find the task in the deleted tasks list and remove it
+      const deletedTaskList = document.getElementById('deleted-task-list');
+      const deletedTasksItems = deletedTaskList.getElementsByTagName('li');
+      for (let task of deletedTasksItems) {
+        if (task.textContent.includes(taskName)) {
+          task.remove();
+          break;
+        }
+      }
+
+      // Find the original category of the task from the deletedTasks array
+      const taskDetails = deletedTasks.find(task => task.name === taskName);
+      if (taskDetails) {
+        const catName = taskDetails.category;
+
+        // Create the task item and restore it to the original category
+        const taskList = document.getElementById(`task-list-${catName}`);
+        const restoredTaskItem = document.createElement('li');
+        restoredTaskItem.className = 'task-item';
+        restoredTaskItem.innerHTML = `
+          ${taskName}
+          <button onclick="completeTask('${catName}', this)">Complete</button>
+          <button onclick="deleteTask('${catName}', this)">Delete</button>
+        `;
+        taskList.appendChild(restoredTaskItem);
+      }
+
+      // Remove the task from the deletedTasks array
+      deletedTasks = deletedTasks.filter(task => task.name !== taskName);
     }
 
     function removeCategory(catName) {
@@ -410,72 +309,8 @@
       catDiv.remove();
     }
 
-    function removeSubcategory(catName, subcatName) {
-      const subcatSection = document.getElementById(`subcat-${catName}-${subcatName}`);
-      subcatSection.remove();
-      
-      // Remove subcategory from filter dropdown
-      const subcategoryFilter = document.getElementById(`subcategory-filter-${catName}`);
-      const options = subcategoryFilter.options;
-      for (let i = 0; i < options.length; i++) {
-        if (options[i].value === subcatName) {
-          subcategoryFilter.removeChild(options[i]);
-          break;
-        }
-      }
-    }
-
-    function filterCategories() {
-      const categoryFilter = document.getElementById('category-filter');
-      const selectedCategory = categoryFilter.value;
-
-      const allCategoriesDiv = document.getElementById('all-categories');
-      const categoryDivs = allCategoriesDiv.getElementsByClassName('category-box');
-
-      Array.from(categoryDivs).forEach(categoryDiv => {
-        const categoryName = categoryDiv.id.replace('cat-', '');
-        if (selectedCategory === 'all' || categoryName === selectedCategory) {
-          categoryDiv.style.display = 'block';
-        } else {
-          categoryDiv.style.display = 'none';
-        }
-      });
-    }
-
-    function updateProgressBar() {
-      const progressInput = document.getElementById('progress-input');
-      const progressBar = document.getElementById('progress-bar');
-      const progressText = document.getElementById('progress-text');
-      
-      const value = progressInput.value;
-      if (value < 0) {
-        progressInput.value = 0;
-      } else if (value > 100) {
-        progressInput.value = 100;
-      }
-
-      progressBar.value = progressInput.value;
-      progressText.textContent = `${progressInput.value}%`;
-    }
-
-    function completeAllTasks(catName) {
-      const catDiv = document.getElementById(`cat-${catName}`);
-      const subcatSections = catDiv.getElementsByClassName('subcat-section');
-      
-      Array.from(subcatSections).forEach(subcat => {
-        const taskList = subcat.querySelector('.task-list');
-        const tasks = taskList.getElementsByTagName('li');
-        Array.from(tasks).forEach(task => {
-          task.classList.add('done');
-        });
-      });
-    }
-
     function deleteEverything() {
-      const allCategoriesDiv = document.getElementById('all-categories');
-      allCategoriesDiv.innerHTML = '';
-      const categoryFilter = document.getElementById('category-filter');
-      categoryFilter.innerHTML = '<option value="all">All</option>';
+      document.getElementById('all-categories').innerHTML = '';
     }
   </script>
 </body>
