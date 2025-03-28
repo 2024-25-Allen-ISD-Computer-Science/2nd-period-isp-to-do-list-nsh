@@ -6,20 +6,17 @@
   <title>To-Do App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    /* Add styles for the page */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       background-color: #f4f4f4;
       transition: background-color 0.3s, color 0.3s;
-    }//
-
+    }
     h1 {
       text-align: center;
       color: #4CAF50;
       transition: color 0.3s;
     }
-
     .main-container {
       max-width: 800px;
       margin: 0 auto;
@@ -27,34 +24,22 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s, box-shadow 0.3s;
     }
-
-    input[type="text"], input[type="date"], input[type="color"], select {
+    input, select {
       width: 100%;
       padding: 12px;
       margin-bottom: 10px;
-      box-sizing: border-box;
-      font-size: 16px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      transition: border-color 0.3s, box-shadow 0.3s;
     }
-
     button {
       padding: 12px 18px;
-      font-size: 16px;
       cursor: pointer;
       border: none;
       border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
       background-color: #4CAF50;
       color: white;
-      transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
     }
-
     .category-box {
       margin-top: 20px;
       padding: 20px;
@@ -62,21 +47,11 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
-      transition: box-shadow 0.3s, transform 0.3s;
     }
-
-    .cat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
     .task-list {
       list-style-type: none;
       padding: 0;
     }
-
     li {
       padding: 12px;
       background-color: #f4f4f4;
@@ -85,74 +60,27 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s;
     }
-
-    li:hover {
-      transform: scale(1.02);
-      background-color: #e0e0e0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
     li.done {
       text-decoration: line-through;
       background-color: #d3ffd3;
     }
-
     .dark-mode {
       background-color: #333;
+      color: white;
     }
-
     .dark-mode .main-container {
       background-color: #444;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
-
-    /* Toggle Switch Styles */
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 34px;
-      margin-bottom: 20px;
+    .dark-mode h1 {
+      color: #8bc34a;
     }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
+    .dark-mode .category-box {
+      background-color: #555;
+      color: white;
     }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 34px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #4CAF50;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
+    .dark-mode li {
+      background-color: #666;
     }
   </style>
 </head>
@@ -160,22 +88,18 @@
   <div class="main-container">
     <h1>To-Do App</h1>
 
-    <label class="toggle-switch">
-      <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()">
-      <span class="slider"></span>
-    </label>
+    <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
 
     <input type="text" id="cat-name-input" placeholder="Enter category name">
     <input type="color" id="cat-bg-color" value="#ffffff">
-    <button onclick="makeCategory()"><i class="fas fa-plus"></i> Add Category</button>
+    <button onclick="makeCategory()">Add Category</button>
 
     <div id="all-categories"></div>
 
-    <button class="delete-all-btn" onclick="deleteEverything()" style="background-color: #f44336; color: white;">
-      <i class="fas fa-trash-alt"></i> Clear All Categories
+    <button onclick="deleteEverything()" style="background-color: #f44336; color: white;">
+      Clear All Categories
     </button>
 
-    <!-- Deleted Tasks Section -->
     <div id="deleted-tasks">
       <h2>Deleted Tasks</h2>
       <ul class="task-list" id="deleted-task-list"></ul>
@@ -183,14 +107,19 @@
   </div>
 
   <script>
-    let darkMode = false;
     let deletedTasks = [];
 
+    // Dark Mode Persistence
     function toggleDarkMode() {
-      darkMode = !darkMode;
-      document.body.classList.toggle('dark-mode', darkMode);
-      document.getElementById('dark-mode-toggle').checked = darkMode;
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
     }
+
+    window.onload = function () {
+      if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+      }
+    };
 
     function makeCategory() {
       const categoryInput = document.getElementById('cat-name-input');
@@ -199,7 +128,7 @@
       if (newCategoryName === '') return alert('Category needs a name!');
 
       const allCategoriesDiv = document.getElementById('all-categories');
-      if (document.getElementById(`cat-${newCategoryName}`)) {
+      if (document.getElemFFentById(`cat-${newCategoryName}`)) {
         return alert('This category already exists.');
       }
 
@@ -209,14 +138,11 @@
       catDiv.style.backgroundColor = categoryColor.value;
 
       catDiv.innerHTML = ` 
-        <div class="cat-header">
-          <h2>${newCategoryName}</h2>
-          <button onclick="removeCategory('${newCategoryName}')">Remove Category</button>
-        </div>
+        <h2>${newCategoryName}</h2>
+        <button onclick="removeCategory('${newCategoryName}')">Remove Category</button>
         <input type="text" id="task-name-${newCategoryName}" placeholder="Enter task name">
         <input type="date" id="task-due-date-${newCategoryName}">
-        <button onclick="makeTask('${newCategoryName}')"><i class="fas fa-plus"></i> Add Task</button>
-        
+        <button onclick="makeTask('${newCategoryName}')">Add Task</button>
         <ul class="task-list" id="task-list-${newCategoryName}"></ul>
       `;
       allCategoriesDiv.appendChild(catDiv);
@@ -224,27 +150,27 @@
       categoryInput.value = '';
     }
 
+    // Prevent Duplicate Tasks in a Category
     function makeTask(catName) {
       const taskNameInput = document.getElementById(`task-name-${catName}`);
-      const taskDueDateInput = document.getElementById(`task-due-date-${catName}`);
       const taskName = taskNameInput.value.trim();
-      const taskDueDate = taskDueDateInput.value;
+      const taskList = document.getElementById(`task-list-${catName}`);
 
       if (taskName === '') return alert('Task name cannot be empty.');
+      for (let task of taskList.children) {
+        if (task.textContent.includes(taskName)) {
+          return alert('This task already exists in the category.');
+        }
+      }
 
-      const taskList = document.getElementById(`task-list-${catName}`);
-      
       const taskItem = document.createElement('li');
-      taskItem.className = 'task-item';
       taskItem.innerHTML = `
-        ${taskName} <span class="due-date">Due: ${taskDueDate}</span>
+        ${taskName} 
         <button onclick="completeTask('${catName}', this)">Complete</button>
-        <button onclick="deleteTask('${catName}', this)">Delete</button>
+        <button onclick="deleteTask('${catName}', '${taskName}', this)">Delete</button>
       `;
-      
       taskList.appendChild(taskItem);
       taskNameInput.value = '';
-      taskDueDateInput.value = '';
     }
 
     function completeTask(catName, btn) {
@@ -252,14 +178,11 @@
       taskItem.classList.toggle('done');
     }
 
-    function deleteTask(catName, btn) {
+    function deleteTask(catName, taskName, btn) {
       const taskItem = btn.parentElement;
-      const taskName = taskItem.textContent.trim();
+      
+      deletedTasks.push({ name: taskName, category: catName, content: taskItem.innerHTML });
 
-      // Add task to the deletedTasks array
-      deletedTasks.push({ name: taskName, category: catName });
-
-      // Move the deleted task to the "Deleted Tasks" section
       const deletedTaskList = document.getElementById('deleted-task-list');
       const deletedTaskItem = document.createElement('li');
       deletedTaskItem.innerHTML = `
@@ -268,40 +191,35 @@
       `;
       deletedTaskList.appendChild(deletedTaskItem);
 
-      // Remove the task from the current list
       taskItem.remove();
     }
 
     function restoreTask(taskName) {
-      // Find the task in the deleted tasks list and remove it
+      const taskDetails = deletedTasks.find(task => task.name === taskName);
+      if (!taskDetails) return alert('Task not found!');
+
+      const { category, content } = taskDetails;
+      deletedTasks = deletedTasks.filter(task => task.name !== taskName);
+
+      const taskList = document.getElementById(`task-list-${category}`);
+      if (!taskList) return alert(`Category "${category}" no longer exists!`);
+
+      const restoredTaskItem = document.createElement('li');
+      restoredTaskItem.className = 'task-item';
+      restoredTaskItem.innerHTML = content;
+
+      const deleteBtn = restoredTaskItem.querySelector('button:last-child');
+      deleteBtn.setAttribute("onclick", `deleteTask('${category}', '${taskName}', this)`);
+
+      taskList.appendChild(restoredTaskItem);
+
       const deletedTaskList = document.getElementById('deleted-task-list');
-      const deletedTasksItems = deletedTaskList.getElementsByTagName('li');
-      for (let task of deletedTasksItems) {
-        if (task.textContent.includes(taskName)) {
-          task.remove();
+      for (let li of deletedTaskList.getElementsByTagName('li')) {
+        if (li.textContent.includes(taskName)) {
+          li.remove();
           break;
         }
       }
-
-      // Find the original category of the task from the deletedTasks array
-      const taskDetails = deletedTasks.find(task => task.name === taskName);
-      if (taskDetails) {
-        const catName = taskDetails.category;
-
-        // Create the task item and restore it to the original category
-        const taskList = document.getElementById(`task-list-${catName}`);
-        const restoredTaskItem = document.createElement('li');
-        restoredTaskItem.className = 'task-item';
-        restoredTaskItem.innerHTML = `
-          ${taskName}
-          <button onclick="completeTask('${catName}', this)">Complete</button>
-          <button onclick="deleteTask('${catName}', this)">Delete</button>
-        `;
-        taskList.appendChild(restoredTaskItem);
-      }
-
-      // Remove the task from the deletedTasks array
-      deletedTasks = deletedTasks.filter(task => task.name !== taskName);
     }
 
     function removeCategory(catName) {
