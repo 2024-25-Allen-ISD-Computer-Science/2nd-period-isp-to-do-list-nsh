@@ -128,7 +128,7 @@
       if (newCategoryName === '') return alert('Category needs a name!');
 
       const allCategoriesDiv = document.getElementById('all-categories');
-      if (document.getElemFFentById(`cat-${newCategoryName}`)) {
+      if (document.getElementById(`cat-${newCategoryName}`)) {
         return alert('This category already exists.');
       }
 
@@ -150,7 +150,6 @@
       categoryInput.value = '';
     }
 
-    // Prevent Duplicate Tasks in a Category
     function makeTask(catName) {
       const taskNameInput = document.getElementById(`task-name-${catName}`);
       const taskName = taskNameInput.value.trim();
@@ -158,7 +157,7 @@
 
       if (taskName === '') return alert('Task name cannot be empty.');
       for (let task of taskList.children) {
-        if (task.textContent.includes(taskName)) {
+        if (task.firstChild.nodeValue.trim() === taskName) {
           return alert('This task already exists in the category.');
         }
       }
@@ -205,7 +204,6 @@
       if (!taskList) return alert(`Category "${category}" no longer exists!`);
 
       const restoredTaskItem = document.createElement('li');
-      restoredTaskItem.className = 'task-item';
       restoredTaskItem.innerHTML = content;
 
       const deleteBtn = restoredTaskItem.querySelector('button:last-child');
@@ -214,7 +212,7 @@
       taskList.appendChild(restoredTaskItem);
 
       const deletedTaskList = document.getElementById('deleted-task-list');
-      for (let li of deletedTaskList.getElementsByTagName('li')) {
+      for (let li of deletedTaskList.children) {
         if (li.textContent.includes(taskName)) {
           li.remove();
           break;
@@ -223,15 +221,17 @@
     }
 
     function removeCategory(catName) {
-      const catDiv = document.getElementById(`cat-${catName}`);
-      catDiv.remove();
+      if (!confirm(`Are you sure you want to remove the category "${catName}"?`)) return;
+      document.getElementById(`cat-${catName}`).remove();
     }
 
     function deleteEverything() {
+      if (!confirm('Are you sure you want to delete all categories and tasks?')) return;
       document.getElementById('all-categories').innerHTML = '';
+      document.getElementById('deleted-task-list').innerHTML = '';
+      deletedTasks = [];
     }
   </script>
 </body>
 </html>
-
 
